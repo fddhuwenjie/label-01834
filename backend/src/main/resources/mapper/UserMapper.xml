@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mahjong.mapper.UserMapper">
+
+    <resultMap id="userResultMap" type="com.mahjong.entity.User">
+        <id column="id" property="id"/>
+        <result column="nickname" property="nickname"/>
+        <result column="password" property="password"/>
+        <result column="avatar" property="avatar"/>
+        <result column="total_games" property="totalGames"/>
+        <result column="win_games" property="winGames"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <select id="findByNickname" resultMap="userResultMap">
+        SELECT * FROM user WHERE nickname = #{nickname}
+    </select>
+
+</mapper>

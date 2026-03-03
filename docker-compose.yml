@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mahjong-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: mahjong_root_2024
+      MYSQL_DATABASE: mahjong_db
+      MYSQL_USER: mahjong_user
+      MYSQL_PASSWORD: mahjong_pass_2024
+      LANG: C.UTF-8
+      LC_ALL: C.UTF-8
+    ports:
+      - "45213:3306"
+    volumes:
+      - ./database-mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - mysql-data:/var/lib/mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mahjong-backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/mahjong_db?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+      SPRING_DATASOURCE_USERNAME: mahjong_user
+      SPRING_DATASOURCE_PASSWORD: mahjong_pass_2024
+      SERVER_PORT: 38942
+      LANG: C.UTF-8
+    ports:
+      - "38942:38942"
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+volumes:
+  mysql-data:

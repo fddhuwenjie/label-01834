@@ -1,0 +1,8 @@
+{
+  "navigationStyle": "custom",
+  "pageOrientation": "landscape",
+  "disableScroll": true,
+  "usingComponents": {
+    "tile": "/components/tile/tile"
+  }
+}

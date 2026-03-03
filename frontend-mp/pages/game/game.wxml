@@ -1,0 +1,132 @@
+<view class="game-page">
+  <!-- 出牌飞行动画 -->
+  <view class="flying-tile" wx:if="{{flyingTile.show}}">
+    <tile code="{{flyingTile.code}}" small="{{true}}" />
+  </view>
+
+  <!-- 状态栏 -->
+  <view class="status-bar">
+    <text class="status-text">{{statusText}}</text>
+    <text class="wall-info">余{{wallRemaining}}张</text>
+  </view>
+
+  <!-- 主牌桌区 (flex row) -->
+  <view class="main-area">
+    <!-- 左侧: AI-西 -->
+    <view class="side-col">
+      <text class="side-name">{{aiPlayers[2].name}}</text>
+      <tile facedown="{{true}}" tiny="{{true}}" />
+      <text class="side-count">×{{aiPlayers[2].tileCount}}</text>
+      <!-- AI-西 副露 -->
+      <view class="side-melds" wx:if="{{aiPlayers[2].melds.length > 0}}">
+        <block wx:for="{{aiPlayers[2].melds}}" wx:key="_meldId" wx:for-item="meld">
+          <tile wx:for="{{meld.tiles}}" wx:key="_id" code="{{item.code}}" tiny="{{true}}" />
+        </block>
+      </view>
+    </view>
+
+    <!-- 中央牌桌 -->
+    <view class="table-center">
+      <!-- 顶部: AI-南 手牌 -->
+      <view class="top-seat">
+        <text class="top-name">{{aiPlayers[1].name}}</text>
+        <view class="top-hand">
+          <tile wx:for="{{aiHandArrays[1]}}" wx:key="index" facedown="{{true}}" tiny="{{true}}" />
+        </view>
+        <!-- AI-南 副露 -->
+        <view class="top-melds" wx:if="{{aiPlayers[1].melds.length > 0}}">
+          <block wx:for="{{aiPlayers[1].melds}}" wx:key="_meldId" wx:for-item="meld">
+            <tile wx:for="{{meld.tiles}}" wx:key="_id" code="{{item.code}}" tiny="{{true}}" />
+            <view class="meld-gap"></view>
+          </block>
+        </view>
+      </view>
+
+      <!-- 弃牌区: 四面各自在前 -->
+      <view class="discard-zone">
+        <!-- AI-南弃牌(上) -->
+        <view class="dz-top">
+          <tile wx:for="{{allDiscards[2]}}" wx:key="_id" code="{{item.code}}" tiny="{{true}}" />
+        </view>
+        <!-- 中间行: 西弃牌 | 中央提示 | 东弃牌 -->
+        <view class="dz-mid">
+          <view class="dz-west">
+            <tile wx:for="{{allDiscards[3]}}" wx:key="_id" code="{{item.code}}" tiny="{{true}}" />
+          </view>
+          <view class="dz-center">
+            <view class="last-discard-hint" wx:if="{{lastDiscard && phase === 'action'}}">
+              <text class="hint-text">{{lastDiscardPlayerName}}打出</text>
+              <tile code="{{lastDiscard}}" small="{{true}}" />
+            </view>
+          </view>
+          <view class="dz-east">
+            <tile wx:for="{{allDiscards[1]}}" wx:key="_id" code="{{item.code}}" tiny="{{true}}" />
+          </view>
+        </view>
+        <!-- 玩家弃牌(下) -->
+        <view class="dz-bottom">
+          <tile wx:for="{{allDiscards[0]}}" wx:key="_id" code="{{item.code}}" tiny="{{true}}" />
+        </view>
+      </view>
+
+      <!-- 玩家副露 -->
+      <view class="my-melds" wx:if="{{playerMelds.length > 0}}">
+        <block wx:for="{{playerMelds}}" wx:key="_meldId" wx:for-item="meld" wx:for-index="meldIdx">
+          <tile wx:for="{{meld.tiles}}" wx:key="_id" code="{{item.code}}" tiny="{{true}}" />
+          <view class="meld-gap" wx:if="{{meldIdx < playerMelds.length - 1}}"></view>
+        </block>
+      </view>
+    </view>
+
+    <!-- 右侧: AI-东 -->
+    <view class="side-col">
+      <text class="side-name">{{aiPlayers[0].name}}</text>
+      <tile facedown="{{true}}" tiny="{{true}}" />
+      <text class="side-count">×{{aiPlayers[0].tileCount}}</text>
+      <!-- AI-东 副露 -->
+      <view class="side-melds" wx:if="{{aiPlayers[0].melds.length > 0}}">
+        <block wx:for="{{aiPlayers[0].melds}}" wx:key="_meldId" wx:for-item="meld">
+          <tile wx:for="{{meld.tiles}}" wx:key="_id" code="{{item.code}}" tiny="{{true}}" />
+        </block>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部: 操作按钮 + 手牌 -->
+  <view class="player-bar">
+    <!-- 操作按钮组 -->
+    <view class="action-group" wx:if="{{availableActions.length > 0 && phase === 'action'}}">
+      <button class="act-btn act-pass" bindtap="onPass">过</button>
+      <button class="act-btn act-chi" wx:if="{{canChi}}" bindtap="onChi">吃</button>
+      <button class="act-btn act-pong" wx:if="{{canPong}}" bindtap="onPong">碰</button>
+      <button class="act-btn act-kong" wx:if="{{canKong}}" bindtap="onKong">杠</button>
+      <button class="act-btn act-win" wx:if="{{canWin}}" bindtap="onWin">胡</button>
+    </view>
+    <view class="action-group" wx:elif="{{phase === 'discard' && (canSelfKong || canSelfWin)}}">
+      <button class="act-btn act-kong" wx:if="{{canSelfKong}}" bindtap="onSelfKong">暗杠</button>
+      <button class="act-btn act-win" wx:if="{{canSelfWin}}" bindtap="onWin">自摸</button>
+    </view>
+
+    <!-- 手牌 -->
+    <view class="hand-tiles">
+      <tile wx:for="{{playerHand}}" wx:key="_id"
+            code="{{item.code}}" small="{{true}}" selected="{{selectedIndex === index}}"
+            data-index="{{index}}" bindtap="onTileSelect" />
+    </view>
+
+    <!-- 打出按钮 -->
+    <button class="discard-btn" wx:if="{{selectedIndex >= 0 && phase === 'discard'}}" bindtap="onDiscard">打出</button>
+  </view>
+
+  <!-- 结算弹窗 -->
+  <view class="modal-mask" wx:if="{{showResult}}">
+    <view class="result-modal">
+      <text class="result-title">{{resultTitle}}</text>
+      <text class="result-desc">{{resultDesc}}</text>
+      <view class="result-btns">
+        <button class="btn-primary r-btn" bindtap="newGame">再来一局</button>
+        <button class="btn-secondary r-btn" bindtap="backToHome">返回首页</button>
+      </view>
+    </view>
+  </view>
+</view>

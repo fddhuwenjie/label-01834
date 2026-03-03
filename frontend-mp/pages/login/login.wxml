@@ -1,0 +1,38 @@
+<view class="login-page">
+  <view class="login-header">
+    <view class="logo-circle">
+      <text class="logo-text">雀</text>
+    </view>
+    <text class="app-title">国风麻将</text>
+    <text class="app-subtitle">指尖上的国粹传承</text>
+  </view>
+
+  <view class="login-card">
+    <view class="tab-bar">
+      <view class="tab {{isLogin ? 'tab-active' : ''}}" bindtap="switchToLogin">登录</view>
+      <view class="tab {{!isLogin ? 'tab-active' : ''}}" bindtap="switchToRegister">注册</view>
+    </view>
+
+    <view class="form-group">
+      <view class="input-wrapper">
+        <view class="input-icon icon-user"></view>
+        <input class="form-input" placeholder="请输入用户名" value="{{nickname}}" bindinput="onNicknameInput" />
+      </view>
+    </view>
+
+    <view class="form-group">
+      <view class="input-wrapper">
+        <view class="input-icon icon-lock"></view>
+        <input class="form-input" placeholder="请输入密码" password="{{true}}" value="{{password}}" bindinput="onPasswordInput" />
+      </view>
+    </view>
+
+    <button class="btn-primary login-btn" bindtap="handleSubmit" loading="{{loading}}" disabled="{{loading}}">
+      {{isLogin ? '登 录' : '注 册'}}
+    </button>
+  </view>
+
+  <view class="login-footer">
+    <text class="footer-text">单机麻将 · 简约国风</text>
+  </view>
+</view>

@@ -1,0 +1,81 @@
+<view class="index-page">
+  <!-- 顶部装饰 -->
+  <view class="hero-section">
+    <view class="hero-bg"></view>
+    <view class="hero-content">
+      <text class="hero-title">国风麻将</text>
+      <text class="hero-desc">通用规则 · 单机对战</text>
+    </view>
+  </view>
+
+  <!-- 用户信息卡片 -->
+  <view class="card user-card" wx:if="{{userInfo}}">
+    <view class="user-row">
+      <view class="avatar-circle">
+        <text class="avatar-text">{{userInfo.nickname[0]}}</text>
+      </view>
+      <view class="user-info">
+        <text class="user-name">{{userInfo.nickname}}</text>
+        <text class="user-stats text-secondary">总局 {{stats.total || 0}} · 胜率 {{winRate}}%</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 开始游戏按钮 -->
+  <view class="start-section">
+    <button class="btn-primary start-btn" bindtap="startGame" loading="{{starting}}" disabled="{{starting}}">
+      开始对局
+    </button>
+  </view>
+
+  <!-- 快捷统计 -->
+  <view class="card stats-card" wx:if="{{stats}}">
+    <view class="section-title">数据一览</view>
+    <view class="stats-grid">
+      <view class="stat-item">
+        <text class="stat-value">{{stats.total || 0}}</text>
+        <text class="stat-label">总局数</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-value win-color">{{stats.wins || 0}}</text>
+        <text class="stat-label">胜场</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-value lose-color">{{stats.losses || 0}}</text>
+        <text class="stat-label">败场</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-value">{{stats.draws || 0}}</text>
+        <text class="stat-label">平局</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 最近战绩 -->
+  <view class="card" wx:if="{{recentGames.length > 0}}">
+    <view class="section-title">最近对局</view>
+    <view class="recent-list">
+      <view class="recent-item" wx:for="{{recentGames}}" wx:key="id">
+        <view class="result-badge result-{{item.result}}">
+          {{item.result === 'win' ? '胜' : item.result === 'lose' ? '负' : '平'}}
+        </view>
+        <view class="recent-info">
+          <text class="recent-rounds">{{item.rounds}}回合</text>
+          <text class="recent-time text-secondary">{{item.timeStr}}</text>
+        </view>
+        <text class="recent-score {{item.score > 0 ? 'win-color' : item.score < 0 ? 'lose-color' : ''}}">
+          {{item.score > 0 ? '+' : ''}}{{item.score}}分
+        </text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 牌面装饰展示 -->
+  <view class="deco-tiles">
+    <tile code="jian1" small="{{true}}" />
+    <tile code="jian2" small="{{true}}" />
+    <tile code="jian3" small="{{true}}" />
+    <tile code="feng1" small="{{true}}" />
+    <tile code="feng2" small="{{true}}" />
+  </view>
+</view>

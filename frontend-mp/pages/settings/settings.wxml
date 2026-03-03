@@ -1,0 +1,79 @@
+<view class="container">
+  <view class="section-title">游戏设置</view>
+
+  <view class="card">
+    <view class="setting-item">
+      <view class="setting-info">
+        <text class="setting-label">AI出牌速度</text>
+        <text class="setting-desc text-secondary">调整电脑玩家的思考时间</text>
+      </view>
+      <picker bindchange="onSpeedChange" value="{{speedIndex}}" range="{{speedOptions}}">
+        <view class="setting-value">{{speedOptions[speedIndex]}} ▾</view>
+      </picker>
+    </view>
+
+    <view class="setting-divider"></view>
+
+    <view class="setting-item">
+      <view class="setting-info">
+        <text class="setting-label">音效</text>
+        <text class="setting-desc text-secondary">游戏音效开关</text>
+      </view>
+      <switch checked="{{soundEnabled}}" bindchange="onSoundToggle" color="#1B5E20" />
+    </view>
+
+    <view class="setting-divider"></view>
+
+    <view class="setting-item">
+      <view class="setting-info">
+        <text class="setting-label">自动理牌</text>
+        <text class="setting-desc text-secondary">摸牌后自动按花色排序</text>
+      </view>
+      <switch checked="{{autoSort}}" bindchange="onAutoSortToggle" color="#1B5E20" />
+    </view>
+  </view>
+
+  <view class="section-title">账号信息</view>
+
+  <view class="card">
+    <view class="setting-item">
+      <text class="setting-label">当前账号</text>
+      <text class="setting-value">{{nickname}}</text>
+    </view>
+
+    <view class="setting-divider"></view>
+
+    <view class="setting-item">
+      <text class="setting-label">总局数</text>
+      <text class="setting-value">{{totalGames}}</text>
+    </view>
+
+    <view class="setting-divider"></view>
+
+    <view class="setting-item">
+      <text class="setting-label">胜局数</text>
+      <text class="setting-value win-color">{{winGames}}</text>
+    </view>
+  </view>
+
+  <view class="logout-section">
+    <button class="btn-secondary logout-btn" bindtap="onLogout">退出登录</button>
+  </view>
+
+  <view class="about-section">
+    <text class="text-secondary">国风麻将 v1.0.0</text>
+    <text class="text-secondary">通用规则 · 单机对战</text>
+  </view>
+
+  <!-- 退出确认弹窗 -->
+  <view class="modal-mask" wx:if="{{showLogoutModal}}" bindtap="onCancelLogout">
+    <view class="custom-modal" catchtap>
+      <text class="modal-title">确认退出</text>
+      <text class="modal-content">确定要退出登录吗？</text>
+      <view class="modal-btns">
+        <button class="modal-btn modal-btn-cancel" bindtap="onCancelLogout">取消</button>
+        <button class="modal-btn modal-btn-confirm" bindtap="onConfirmLogout">退出</button>
+      </view>
+    </view>
+  </view>
+</view>

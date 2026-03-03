@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "国风麻将",
+  "usingComponents": {
+    "tile": "/components/tile/tile"
+  }
+}

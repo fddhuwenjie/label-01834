@@ -1,0 +1,10 @@
+<view class="tile tile-{{info.color}} {{selected ? 'tile-selected' : ''}} {{tiny ? 'tile-tiny' : (small ? 'tile-small' : '')}} {{facedown ? 'tile-back' : ''}}"
+      bindtap="onTap">
+  <block wx:if="{{!facedown}}">
+    <text class="tile-text">{{info.text}}</text>
+    <text class="tile-sub" wx:if="{{info.sub}}">{{info.sub}}</text>
+  </block>
+  <block wx:else>
+    <view class="tile-back-pattern"></view>
+  </block>
+</view>

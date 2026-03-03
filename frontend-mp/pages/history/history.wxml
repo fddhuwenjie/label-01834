@@ -1,0 +1,52 @@
+<view class="container">
+  <view class="section-title">战绩统计</view>
+
+  <view class="card stats-overview" wx:if="{{stats}}">
+    <view class="stats-row">
+      <view class="stat-block">
+        <text class="stat-num">{{stats.total || 0}}</text>
+        <text class="stat-desc">总局数</text>
+      </view>
+      <view class="stat-block">
+        <text class="stat-num win-color">{{stats.wins || 0}}</text>
+        <text class="stat-desc">胜场</text>
+      </view>
+      <view class="stat-block">
+        <text class="stat-num lose-color">{{stats.losses || 0}}</text>
+        <text class="stat-desc">败场</text>
+      </view>
+      <view class="stat-block">
+        <text class="stat-num accent-color">{{winRate}}%</text>
+        <text class="stat-desc">胜率</text>
+      </view>
+    </view>
+    <view class="avg-score">
+      <text class="text-secondary">场均得分：{{avgScore}} 分</text>
+    </view>
+  </view>
+
+  <view class="section-title">对局记录</view>
+
+  <view class="card history-item" wx:for="{{records}}" wx:key="id">
+    <view class="history-left">
+      <view class="result-tag result-{{item.result}}">
+        {{item.result === 'win' ? '胜' : item.result === 'lose' ? '负' : '平'}}
+      </view>
+    </view>
+    <view class="history-center">
+      <text class="history-rounds">{{item.rounds}} 回合 · {{item.durationStr}}</text>
+      <text class="history-time text-secondary">{{item.timeStr}}</text>
+    </view>
+    <view class="history-right">
+      <text class="history-score {{item.score > 0 ? 'win-color' : item.score < 0 ? 'lose-color' : ''}}">
+        {{item.score > 0 ? '+' : ''}}{{item.score}} 分
+      </text>
+    </view>
+  </view>
+
+  <view class="empty-state" wx:if="{{records.length === 0 && !loading}}">
+    <text class="empty-icon">🀄</text>
+    <text>暂无对局记录</text>
+    <text class="text-secondary">开始一局麻将吧</text>
+  </view>
+</view>

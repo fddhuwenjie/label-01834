@@ -1,0 +1,120 @@
+.setting-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 0;
+}
+
+.setting-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.setting-label {
+  font-size: 30rpx;
+  font-weight: 500;
+}
+
+.setting-desc {
+  font-size: 22rpx;
+}
+
+.setting-value {
+  font-size: 28rpx;
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+.setting-divider {
+  height: 1rpx;
+  background: var(--color-border);
+}
+
+.win-color { color: var(--color-success); }
+
+.logout-section {
+  margin-top: 48rpx;
+  padding: 0 32rpx;
+}
+
+.logout-btn {
+  width: 100%;
+  color: var(--color-error);
+  border-color: var(--color-error);
+}
+
+.about-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  margin-top: 48rpx;
+  padding-bottom: 48rpx;
+}
+
+.modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.custom-modal {
+  width: 580rpx;
+  background: var(--color-bg-card);
+  border-radius: var(--radius-xl);
+  padding: 56rpx 48rpx 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: var(--shadow-lg);
+}
+
+.modal-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 20rpx;
+}
+
+.modal-content {
+  font-size: 28rpx;
+  color: var(--color-text-secondary);
+  margin-bottom: 48rpx;
+}
+
+.modal-btns {
+  display: flex;
+  width: 100%;
+  gap: 24rpx;
+}
+
+.modal-btn {
+  flex: 1;
+  height: 84rpx;
+  line-height: 84rpx;
+  text-align: center;
+  font-size: 30rpx;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.modal-btn-cancel {
+  background: #F5F0E8;
+  color: var(--color-text-secondary);
+}
+
+.modal-btn-confirm {
+  background: var(--color-error);
+  color: #fff;
+}
