@@ -78,16 +78,39 @@ public class TileUtils {
     }
 
     /**
-     * 判断手牌是否胡牌（4面子+1雀头，14张牌）
-     * 使用递归拆解算法
+     * 判断手牌是否胡牌（14张牌）
+     * 支持两种胡牌形式：
+     * 1) 标准胡牌：4 面子 + 1 雀头（会遍历所有可能的雀头选择，避免遗漏）
+     * 2) 七对子：7 组互不相同的对子
+     *
+     * 已知限制：本方法仅基于 14 张手牌做静态判定，不区分"自摸"与"点炮"场景。
+     * 调用方（如 MahjongEngine）当前在自摸（手牌 14 张）和点炮（手牌 13 张 + 别家打出 1 张）
+     * 时都通过组合成 14 张后调用本方法或 canWinWith()，因此点炮与自摸的番数差异
+     * （如自摸番、抢杠番等）目前未在引擎层区分，需要在后续迭代中由上层结算逻辑补齐。
      */
     public static boolean isWinningHand(List<String> hand) {
         if (hand.size() != 14) return false;
         Map<String, Integer> counts = toCountMap(hand);
-        return canDecompose(counts, 0, false);
+
+        // 优先判断七对子特殊胡牌形式
+        if (isSevenPairs(counts)) return true;
+
+        // 标准胡牌：完整遍历所有可能的雀头选择
+        for (String pairTile : new ArrayList<>(counts.keySet())) {
+            if (counts.getOrDefault(pairTile, 0) >= 2) {
+                counts.merge(pairTile, -2, Integer::sum);
+                boolean ok = canDecomposeMelds(counts, 0);
+                counts.merge(pairTile, 2, Integer::sum);
+                if (ok) return true;
+            }
+        }
+        return false;
     }
 
-    /** 检查手牌加上指定牌后是否可以胡 */
+    /**
+     * 检查手牌加上指定牌后是否可以胡
+     * 已知限制：未区分自摸 / 点炮场景的番数差异，仅做能否胡牌的结构性判定。
+     */
     public static boolean canWinWith(List<String> hand, String tile) {
         List<String> combined = new ArrayList<>(hand);
         combined.add(tile);
@@ -103,14 +126,29 @@ public class TileUtils {
     }
 
     /**
-     * 递归拆解: 从手牌中提取面子和雀头
+     * 判定七对子：手牌恰好由 7 组互不相同的对子组成
+     */
+    private static boolean isSevenPairs(Map<String, Integer> counts) {
+        int pairCount = 0;
+        int total = 0;
+        for (int c : counts.values()) {
+            if (c == 0) continue;
+            if (c != 2) return false;
+            pairCount++;
+            total += c;
+        }
+        return pairCount == 7 && total == 14;
+    }
+
+    /**
+     * 递归拆解剩余手牌为若干面子（刻子或顺子）
+     * 调用前已扣除雀头，因此本方法只关心 4 个面子的拆解。
      * @param counts 牌计数
      * @param extracted 已提取的面子数
-     * @param hasPair 是否已提取雀头
      */
-    private static boolean canDecompose(Map<String, Integer> counts, int extracted, boolean hasPair) {
+    private static boolean canDecomposeMelds(Map<String, Integer> counts, int extracted) {
         int remaining = counts.values().stream().mapToInt(Integer::intValue).sum();
-        if (remaining == 0 && extracted == 4 && hasPair) return true;
+        if (remaining == 0 && extracted == 4) return true;
         if (remaining == 0) return false;
 
         String first = counts.entrySet().stream()
@@ -119,15 +157,9 @@ public class TileUtils {
                 .findFirst().orElse(null);
         if (first == null) return false;
 
-        if (!hasPair && counts.get(first) >= 2) {
-            counts.merge(first, -2, Integer::sum);
-            if (canDecompose(counts, extracted, true)) return true;
-            counts.merge(first, 2, Integer::sum);
-        }
-
         if (counts.get(first) >= 3) {
             counts.merge(first, -3, Integer::sum);
-            if (canDecompose(counts, extracted + 1, hasPair)) return true;
+            if (canDecomposeMelds(counts, extracted + 1)) return true;
             counts.merge(first, 3, Integer::sum);
         }
 
@@ -141,7 +173,7 @@ public class TileUtils {
                     counts.merge(first, -1, Integer::sum);
                     counts.merge(t2, -1, Integer::sum);
                     counts.merge(t3, -1, Integer::sum);
-                    if (canDecompose(counts, extracted + 1, hasPair)) return true;
+                    if (canDecomposeMelds(counts, extracted + 1)) return true;
                     counts.merge(first, 1, Integer::sum);
                     counts.merge(t2, 1, Integer::sum);
                     counts.merge(t3, 1, Integer::sum);
