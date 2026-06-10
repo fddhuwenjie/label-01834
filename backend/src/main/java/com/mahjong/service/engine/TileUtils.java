@@ -78,13 +78,18 @@ public class TileUtils {
     }
 
     /**
-     * 判断手牌是否胡牌（4面子+1雀头，14张牌）
-     * 使用递归拆解算法
+     * 判断手牌是否胡牌（14张牌）
+     * 支持两种胡牌形式：
+     *   1. 标准胡：4面子 + 1雀头
+     *   2. 七对子：7组不同的对子（每组2张，共14张）
+     *
+     * 已知限制：MahjongEngine 调用此方法时未区分自摸（14张手牌）与点炮（13张+1张新牌）的番数计算，
+     * canWinWith 方法仅处理加牌逻辑，未计算自摸/点炮对应的番数差异。
      */
     public static boolean isWinningHand(List<String> hand) {
         if (hand.size() != 14) return false;
         Map<String, Integer> counts = toCountMap(hand);
-        return canDecompose(counts, 0, false);
+        return isSevenPairs(counts) || canDecomposeStandard(counts);
     }
 
     /** 检查手牌加上指定牌后是否可以胡 */
@@ -94,23 +99,43 @@ public class TileUtils {
         return isWinningHand(combined);
     }
 
-    private static Map<String, Integer> toCountMap(List<String> tiles) {
-        Map<String, Integer> map = new LinkedHashMap<>();
-        for (String t : tiles) {
-            map.merge(t, 1, Integer::sum);
+    /**
+     * 判断是否为七对子牌型（7组对子，共14张）
+     * 规则：恰好有7种不同的牌，每种牌恰好2张（不能有4张相同的牌，否则不构成7种不同对子）
+     */
+    private static boolean isSevenPairs(Map<String, Integer> counts) {
+        if (counts.size() != 7) return false;
+        for (int count : counts.values()) {
+            if (count != 2) return false;
         }
-        return map;
+        return true;
     }
 
     /**
-     * 递归拆解: 从手牌中提取面子和雀头
-     * @param counts 牌计数
-     * @param extracted 已提取的面子数
-     * @param hasPair 是否已提取雀头
+     * 判断是否为标准胡牌型（4面子 + 1雀头）
+     * 遍历所有可能的雀头选择，再递归拆解面子
      */
-    private static boolean canDecompose(Map<String, Integer> counts, int extracted, boolean hasPair) {
+    private static boolean canDecomposeStandard(Map<String, Integer> counts) {
+        for (Map.Entry<String, Integer> entry : counts.entrySet()) {
+            String tile = entry.getKey();
+            int count = entry.getValue();
+            if (count >= 2) {
+                Map<String, Integer> copy = new LinkedHashMap<>(counts);
+                copy.merge(tile, -2, Integer::sum);
+                if (canDecomposeMelds(copy, 0)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 递归拆解面子（刻子或顺子），需要凑齐4组面子
+     */
+    private static boolean canDecomposeMelds(Map<String, Integer> counts, int meldsExtracted) {
         int remaining = counts.values().stream().mapToInt(Integer::intValue).sum();
-        if (remaining == 0 && extracted == 4 && hasPair) return true;
+        if (remaining == 0 && meldsExtracted == 4) return true;
         if (remaining == 0) return false;
 
         String first = counts.entrySet().stream()
@@ -119,15 +144,9 @@ public class TileUtils {
                 .findFirst().orElse(null);
         if (first == null) return false;
 
-        if (!hasPair && counts.get(first) >= 2) {
-            counts.merge(first, -2, Integer::sum);
-            if (canDecompose(counts, extracted, true)) return true;
-            counts.merge(first, 2, Integer::sum);
-        }
-
         if (counts.get(first) >= 3) {
             counts.merge(first, -3, Integer::sum);
-            if (canDecompose(counts, extracted + 1, hasPair)) return true;
+            if (canDecomposeMelds(counts, meldsExtracted + 1)) return true;
             counts.merge(first, 3, Integer::sum);
         }
 
@@ -141,7 +160,7 @@ public class TileUtils {
                     counts.merge(first, -1, Integer::sum);
                     counts.merge(t2, -1, Integer::sum);
                     counts.merge(t3, -1, Integer::sum);
-                    if (canDecompose(counts, extracted + 1, hasPair)) return true;
+                    if (canDecomposeMelds(counts, meldsExtracted + 1)) return true;
                     counts.merge(first, 1, Integer::sum);
                     counts.merge(t2, 1, Integer::sum);
                     counts.merge(t3, 1, Integer::sum);
@@ -150,6 +169,14 @@ public class TileUtils {
         }
 
         return false;
+    }
+
+    private static Map<String, Integer> toCountMap(List<String> tiles) {
+        Map<String, Integer> map = new LinkedHashMap<>();
+        for (String t : tiles) {
+            map.merge(t, 1, Integer::sum);
+        }
+        return map;
     }
 
     /** 检查是否可以碰（手中有2张相同牌） */
