@@ -78,13 +78,18 @@ public class TileUtils {
     }
 
     /**
-     * 判断手牌是否胡牌（4面子+1雀头，14张牌）
-     * 使用递归拆解算法
+     * 判断手牌是否胡牌（14张牌）
+     * 支持两种胡牌形式:
+     *   1. 标准形: 4面子 + 1雀头
+     *   2. 七对子: 7组对子
+     *
+     * 已知限制: 当前不区分"自摸"与"点炮"的番数差异，
+     * 两种场景均使用相同的胡牌判定逻辑，番数计算需在上层业务中补充。
      */
     public static boolean isWinningHand(List<String> hand) {
         if (hand.size() != 14) return false;
         Map<String, Integer> counts = toCountMap(hand);
-        return canDecompose(counts, 0, false);
+        return isSevenPairs(counts) || canStandardWin(counts);
     }
 
     /** 检查手牌加上指定牌后是否可以胡 */
@@ -103,14 +108,43 @@ public class TileUtils {
     }
 
     /**
-     * 递归拆解: 从手牌中提取面子和雀头
+     * 七对子判定: 14张牌中每种牌的数量均为偶数，且对子总数为7
+     * （同一牌4张视为2组对子）
+     */
+    private static boolean isSevenPairs(Map<String, Integer> counts) {
+        int pairCount = 0;
+        for (int count : counts.values()) {
+            if (count % 2 != 0) return false;
+            pairCount += count / 2;
+        }
+        return pairCount == 7;
+    }
+
+    /**
+     * 标准胡牌判定(4面子+1雀头): 显式遍历所有可能的雀头选择，
+     * 对每种雀头检查剩余12张牌能否拆解为4个面子。
+     * 这确保了不会因为仅从第一张牌开始尝试雀头而遗漏合法组合。
+     */
+    private static boolean canStandardWin(Map<String, Integer> counts) {
+        for (Map.Entry<String, Integer> entry : counts.entrySet()) {
+            if (entry.getValue() >= 2) {
+                counts.merge(entry.getKey(), -2, Integer::sum);
+                boolean ok = canFormFourMelds(counts, 0);
+                counts.merge(entry.getKey(), 2, Integer::sum);
+                if (ok) return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 递归拆解面子: 从手牌中提取刻子和顺子，不涉及雀头
      * @param counts 牌计数
      * @param extracted 已提取的面子数
-     * @param hasPair 是否已提取雀头
      */
-    private static boolean canDecompose(Map<String, Integer> counts, int extracted, boolean hasPair) {
+    private static boolean canFormFourMelds(Map<String, Integer> counts, int extracted) {
         int remaining = counts.values().stream().mapToInt(Integer::intValue).sum();
-        if (remaining == 0 && extracted == 4 && hasPair) return true;
+        if (remaining == 0 && extracted == 4) return true;
         if (remaining == 0) return false;
 
         String first = counts.entrySet().stream()
@@ -119,15 +153,9 @@ public class TileUtils {
                 .findFirst().orElse(null);
         if (first == null) return false;
 
-        if (!hasPair && counts.get(first) >= 2) {
-            counts.merge(first, -2, Integer::sum);
-            if (canDecompose(counts, extracted, true)) return true;
-            counts.merge(first, 2, Integer::sum);
-        }
-
         if (counts.get(first) >= 3) {
             counts.merge(first, -3, Integer::sum);
-            if (canDecompose(counts, extracted + 1, hasPair)) return true;
+            if (canFormFourMelds(counts, extracted + 1)) return true;
             counts.merge(first, 3, Integer::sum);
         }
 
@@ -141,7 +169,7 @@ public class TileUtils {
                     counts.merge(first, -1, Integer::sum);
                     counts.merge(t2, -1, Integer::sum);
                     counts.merge(t3, -1, Integer::sum);
-                    if (canDecompose(counts, extracted + 1, hasPair)) return true;
+                    if (canFormFourMelds(counts, extracted + 1)) return true;
                     counts.merge(first, 1, Integer::sum);
                     counts.merge(t2, 1, Integer::sum);
                     counts.merge(t3, 1, Integer::sum);
